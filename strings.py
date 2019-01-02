@@ -8,10 +8,6 @@ from readchar import readchar
 # show plot of algorith in action
 gShowPlot = False
 
-# note of a Pentatonic Minor Scale
-# piano C4, E(b), F, G, C5
-pmNotes = {'C4' : 262, 'Eb' : 311, 'F' : 349, 'G' : 391, 'Bb' : 446}
-
 #Classes===================================================
 ''' Used to play WAV files generated '''
 class NotePlayer:
@@ -23,7 +19,8 @@ class NotePlayer:
 		self.notes = {}
 
 	def addNote(self, fileName):
-		self.notes[fileName] = pygame.mixer.Sound(fileName)
+		self.notes[fileName] = pygame.mixer.Sound(
+			'./notes/' + fileName + '.wav')
 
 	def play(self, fileName):
 		try:
@@ -46,13 +43,6 @@ def generateNote(freq):
 	# initalise ring buffer
 	buf = deque([random.random() - 0.5 for i in range(N)])
 
-	# plot of flag set 
-	if gShowPlot:
-		fig = plt.figure()
-		ax = fig.add_subplot(111)
-		axline, = ax.plot(buf)
-		plt.show(block=False)
- 
 	# initalise samples buffer
 	samples = np.array([0] * nSamples, 'float32')
 
@@ -62,12 +52,6 @@ def generateNote(freq):
 		buf.append(avg)
 		buf.popleft()
 		
-		# plot of flag set 
-		if gShowPlot:
-			if i % 1000 == 0:
-				axline.set_ydata(buf)
-				fig.canvas.draw()
-
 	# convert samples to 16-bit values and then to sting
 	# (max val for 16-bit int is 32767)
 	samples = np.array(samples * 32767, 'int16')
@@ -89,44 +73,34 @@ def writeWAVE(fname, data):
 
 #Program===================================================
 def main():
-	#declare global var
-	global gShowPlot
 	
 	parser = argparse.ArgumentParser(
-		description='Generating sounds with the Karplus Strong Algorithm')
-	parser.add_argument('--display', action='store_true', required=False,
-		help='Plots note waves')
+		description='Generates and plays strings using the '\
+		'Karplus Strong Algorithm')
 	parser.add_argument('--random', action='store_true', required=False,
-		help='Plays random notes until manually exited')	
+		help='Plays random notes until manual exit')	
 	parser.add_argument('--play', action='store_true', required=False,
 		help='Interactivly plays notes based on user input')
 	args = parser.parse_args()
 
-	# plot flag set
-	if args.display:
-		gShowPlot = True
-		plt.ion()
-
 	# create note player
 	nplayer = NotePlayer()
 	
+	Notes = {'E2' : 82.41, 'A2' : 110, 'D3' : 146.8, 
+	'G3' : 196, 'B3' : 246.9, 'E4' : 329.6}
+
 	print('creating notes ...')
-	for name, freq in list(pmNotes.items()):
-		fileName = name + '.wav'
-		if not os.path.exists(fileName) or args.display:
+	for name, freq in list(Notes.items()):
+		fileName = './notes/' + name + '.wav'
+		if not os.path.exists(fileName):
 			data = generateNote(freq)
 			print('creating ' + fileName + ' ...')
 			writeWAVE(fileName, data)
 		else:
-			print('fileName already created (skipped)')
+			print(fileName + ' already created (skipped)')
 
 		# add note to player
-		nplayer.addNote(name + '.wav')
-
-		# if display set
-		if args.display:
-			nplayer.play(name + '.wav')
-			time.sleep(0.5)
+		nplayer.addNote(name)
 
 	# play random tone
 	if args.random:
@@ -144,29 +118,28 @@ def main():
 	
 		# key : file_name
 		keyBindings = {
-			'a' : 'C4.wav',
-			's' : 'Eb.wav',
-			'd' : 'F.wav',
-			'f' : 'G.wav',
-			'g' : 'Bb.wav',
+			'a' : 'E2',
+			's' : 'A2',
+			'd' : 'D3',
+			'f' : 'G3',
+			'g' : 'B3',
+			'h' : 'E4'
 		}
 		#help string
-		ctl_str = "\nNotes:\n\t'A' : C4\n\t'S' : E(b)\n\t'D' : F\n\t"\
-			"'F' : G\n\t'G' : B(b)\n\nPress 'H' for help\n"\
-			"Press 'Q' to quit\n"
-
+		ctl_str = "\nNotes:\n\t'A' : E2\n\t'S' : A2\n\t'D' : D3\n\t"\
+			"'F' : G3\n\t'G' : B3\n\t'H' : E4\n" \
+			"\nPress 'N' for notes\nPress 'Q' to quit\n"
 
 		print(ctl_str)
 		while True:
 			key = readchar().decode("utf-8")
 			if key == 'q':
 				exit()
-			if key == 'h':
+			if key == 'n':
 				print(ctl_str)
 			if key in keyBindings.keys():
 				print(keyBindings[key])
 				nplayer.play(keyBindings[key])
 			
-
 if __name__ == '__main__':
 	main()
