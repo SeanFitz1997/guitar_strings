@@ -2,7 +2,6 @@
 import sys, os, time, random, wave, argparse, pygame
 import numpy as np
 from collections import deque
-from matplotlib import pyplot as plt
 from readchar import readchar
 
 # show plot of algorith in action
@@ -105,14 +104,13 @@ def main():
 	# play random tone
 	if args.random:
 	
-		print('Playing random notes. (Press ctrl-C to exit)') 
-		try:
-			while True:
+		print("Playing random notes. (Press 'Ctl-C' to exit)") 
+		while True:
+			try:
 				nplayer.playRandom()
 				time.sleep(0.5)
-		except KeyboardInterrupt:
-			exit()
-
+			except KeyboardInterrupt:
+				exit()
 	# interactivly play notes
 	elif args.play:
 	
